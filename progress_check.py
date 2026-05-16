@@ -88,14 +88,78 @@ def check_network_config():
 # --- Перевірка FTP завантаження ---
 def check_ftp_upload():
     # Спрощено: перевірка існування файлу, який мав бути завантажений на FTP
-    ok = os.path.exists("/root/network.config")  # якщо файл завантажений, можна змінити на реальну перевірку FTP
+    ok = False
+
+    try:
+        cmd = (
+            "ssh -o StrictHostKeyChecking=no "
+            "padavan@sysadmin.local "
+            "'test -f ~/network.config && echo OK'"
+        )
+
+        output = subprocess.getoutput(cmd)
+
+        if "OK" in output:
+            ok = True
+
+    except:
+        pass
+
     log("ftp_upload=OK" if ok else "ftp_upload=FAIL")
+
     return ok
 
+
+
 # --- Перевірка копіювання Setup.txt через scp ---
+
 def check_scp_setup():
-    ok = os.path.exists("/root/Setup.txt")  # якщо файл успішно скопійований
+ok = False
+
+    try:
+        cmd = (
+            "ssh -o StrictHostKeyChecking=no "
+            "padavan@sysadmin.local "
+            "'grep -i \"Router is Setuped\" ~/Setup.txt && echo OK'"
+        )
+
+        output = subprocess.getoutput(cmd)
+
+        if "OK" in output:
+            ok = True
+
+    except:
+        pass
+
     log("scp_setup=OK" if ok else "scp_setup=FAIL")
+
+    return ok
+
+
+def check_forward_ssh():
+
+    output = subprocess.getoutput(
+        "sudo iptables -S FORWARD"
+    )
+
+    expected = (
+        "-A FORWARD "
+        "-i enp0s8 "
+        "-o enp0s9 "
+        "-p tcp "
+        "-d 192.168.2.5 "
+        "--dport 22 "
+        "-j ACCEPT"
+    )
+
+    ok = expected in output
+
+    log(
+        "forward_ssh=OK"
+        if ok else
+        "forward_ssh=FAIL"
+    )
+
     return ok
 
 

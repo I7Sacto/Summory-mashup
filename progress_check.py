@@ -113,22 +113,26 @@ def check_ftp_upload():
 
 def check_scp_setup():
     ok = False
+
     try:
         cmd = (
+            "sshpass -p 'porta!!!' "
             "ssh -o StrictHostKeyChecking=no "
             "padavan@192.168.2.6 "
-            "'grep -i \"Router is Setuped\" ~/Setup.txt && echo OK'"
+            "\"grep -i '.*Router is Setuped.*' ~/Setup.txt && echo OK || echo FAIL\""
         )
-        output = subprocess.getoutput(cmd)
-        print("scp_setup_output=", repr(output))  # точний вивід
 
-        # Перевірка: достатньо, щоб у виводі було слово OK
-        if "OK" in output.split():
+        output = subprocess.getoutput(cmd)
+        print("scp_setup_output=", repr(output))
+        if "OK" in output:
             ok = True
     except Exception as e:
+
         log(f"scp_setup_error={e}")
 
+
     log("scp_setup=OK" if ok else "scp_setup=FAIL")
+
     return ok
 
 

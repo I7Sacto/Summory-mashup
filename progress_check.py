@@ -109,30 +109,26 @@ def check_ftp_upload():
 
     return ok
 
-
-
 # --- Перевірка копіювання Setup.txt через scp ---
 
 def check_scp_setup():
-ok = False
-
+    ok = False
     try:
         cmd = (
             "ssh -o StrictHostKeyChecking=no "
-            "padavan@sysadmin.local "
+            "padavan@192.168.2.6 "
             "'grep -i \"Router is Setuped\" ~/Setup.txt && echo OK'"
         )
-
         output = subprocess.getoutput(cmd)
+        print("scp_setup_output=", repr(output))  # точний вивід
 
-        if "OK" in output:
+        # Перевірка: достатньо, щоб у виводі було слово OK
+        if "OK" in output.split():
             ok = True
-
-    except:
-        pass
+    except Exception as e:
+        log(f"scp_setup_error={e}")
 
     log("scp_setup=OK" if ok else "scp_setup=FAIL")
-
     return ok
 
 

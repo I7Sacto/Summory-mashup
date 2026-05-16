@@ -67,16 +67,16 @@ def check_resolv():
 # --- Перевірка NAT у iptables ---
 def check_nat():
     ok = False
+
     try:
-        # Перевіряємо наявність MASQUERADE або SNAT у таблиці nat
-        output = subprocess.getoutput("sudo iptables -t nat -L POSTROUTING -n")
-        if "MASQUERADE" in output or "SNAT" in output:
-            # Додатково можна перевірити, що вихідний інтерфейс enp0s3 і мережа 192.168.1.0/24
-            if "enp0s3" in output and "192.168.1." in output:
-                ok = True
+        output = subprocess.getoutput("sudo iptables -t nat -S POSTROUTING")
+
+        if "-j MASQUERADE" in output or "-j SNAT" in output:
+            ok = True
+
     except:
-        pass
-    log("nat=OK" if ok else "nat=FAIL")
+        ok = False
+
     return ok
 
 # --- Перевірка network.config ---

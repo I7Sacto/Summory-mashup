@@ -137,30 +137,24 @@ ok = False
 
 
 def check_forward_ssh():
+    ok = False
+    output = subprocess.getoutput("sudo iptables -t nat -S PREROUTING")
 
-    output = subprocess.getoutput(
-        "sudo iptables -S FORWARD"
+    log("forward_ssh_output=\n" + output)
+
+    expected = ("-A PREROUTING -i enp0s8 -p tcp -m tcp --dport 12345 -j DNAT --to-destination 192.168.2.10:22"
+
     )
 
-    expected = (
-        "-A FORWARD "
-        "-i enp0s8 "
-        "-o enp0s9 "
-        "-p tcp "
-        "-d 192.168.2.5 "
-        "--dport 22 "
-        "-j ACCEPT"
-    )
+    log("forward_ssh_expected=" + expected)
 
     ok = expected in output
 
-    log(
-        "forward_ssh=OK"
-        if ok else
-        "forward_ssh=FAIL"
-    )
+    log("forward_ssh=" + ("OK" if ok else "FAIL"))
 
     return ok
+
+
 
 
 

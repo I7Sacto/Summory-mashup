@@ -86,54 +86,32 @@ def check_network_config():
     return ok
 
 # --- Перевірка FTP завантаження ---
+
 def check_ftp_upload():
-    # Спрощено: перевірка існування файлу, який мав бути завантажений на FTP
     ok = False
+    output = subprocess.getoutput(
+        "sshpass -p 'porta!!!' ssh -o StrictHostKeyChecking=no "
+        "padavan@192.168.2.6 "
+        "\"test -f /srv/sftp/upload/network.config && echo OK || echo FAIL\""
+    )
 
-    try:
-        cmd = (
-            "ssh -o StrictHostKeyChecking=no "
-            "padavan@sysadmin.local "
-            "'test -f ~/network.config && echo OK'"
-        )
+    log("ftp_upload_output=" + output)
 
-        output = subprocess.getoutput(cmd)
+    return "OK" in output
 
-        if "OK" in output:
-            ok = True
-
-    except:
-        pass
-
-    log("ftp_upload=OK" if ok else "ftp_upload=FAIL")
-
-    return ok
 
 # --- Перевірка копіювання Setup.txt через scp ---
-
 def check_scp_setup():
     ok = False
+    output = subprocess.getoutput(
+        "sshpass -p 'passwd' ssh -o StrictHostKeyChecking=no "
+        "padavan@192.168.2.6 "
+        "\"test -f /home/padavan/Setup.txt && grep -qi 'Router is Setuped' /home/padavan/Setup.txt && echo OK ||>
+    )
 
-    try:
-        cmd = (
-            "sshpass -p 'porta!!!' "
-            "ssh -o StrictHostKeyChecking=no "
-            "padavan@192.168.2.6 "
-            "\"grep -i '.*Router is Setuped.*' ~/Setup.txt && echo OK || echo FAIL\""
-        )
+    log("scp_setup_output=" + output)
 
-        output = subprocess.getoutput(cmd)
-        print("scp_setup_output=", repr(output))
-        if "OK" in output:
-            ok = True
-    except Exception as e:
-
-        log(f"scp_setup_error={e}")
-
-
-    log("scp_setup=OK" if ok else "scp_setup=FAIL")
-
-    return ok
+    return "OK" in output
 
 
 def check_forward_ssh():

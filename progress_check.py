@@ -153,26 +153,21 @@ def check_forward_ssh():
     log("forward_ssh=" + ("OK" if ok else "FAIL"))
 
     return ok
-
-
-
-
-
-
 # --- Словник кроків ---
 TASKS = {
-    1: check_ssh_from_ip,
-    2: check_ip_forward,
-    3: check_resolv,
-    4: check_nat,
-    5: check_network_config,
-    6: check_ftp_upload,
-    7: check_scp_setup
+    1: (check_ssh_from_ip, 27),
+    2: (check_ip_forward, 8),
+    3: (check_resolv, 7),
+    4: (check_nat, 10),
+    5: (check_network_config, 8),
+    6: (check_ftp_upload, 9),
+    7: (check_scp_setup, 11),
+    8: (check_forward_ssh, 12),
+    9: (check_traffic_pcap, 8)
 }
 
 def update_progress(task_status):
-    success_count = sum(1 for v in task_status.values() if v)
-    percent = int((success_count / len(TASKS)) * 100)
+    percent = sum(pct for num,(func,pct) in TASKS.items() if task_status.get(num))
     write_progress(percent)
     # Відображення прогресбару у кольорах
     print(f"\r{COLOR_PINK}Progress: {percent} %{COLOR_RESET} {COLOR_BLUE}user@localhost ~$ {COLOR_RESET}", end='')
@@ -181,14 +176,16 @@ def monitor_tasks():
     task_status = {num: False for num in TASKS}
     while True:
         updated = False
-        for num, func in TASKS.items():
+        for num,(func,pct) in TASKS.items():
             current = func()
             if current and not task_status[num]:
                 task_status[num] = True
                 updated = True
+                log(f"Task {num}=OK (+{pct}%)")
         if updated:
             update_progress(task_status)
         time.sleep(2)
+
 
 if __name__ == "__main__":
     write_progress(0)

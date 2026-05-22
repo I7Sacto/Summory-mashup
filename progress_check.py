@@ -131,6 +131,11 @@ def check_forward_ssh():
     log("forward_ssh=" + ("OK" if ok else "FAIL"))
 
     return ok
+
+def check_traffic_pcap():
+    ok = os.path.exists("/root/traffic.pcap")
+    log("traffic_pcap=OK" if ok else "traffic_pcap=NOT FOUND")
+    return ok
 # --- Словник кроків ---
 TASKS = {
     1: (check_ssh_from_ip, 27),

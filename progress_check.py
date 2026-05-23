@@ -5,7 +5,6 @@ from datetime import datetime
 import subprocess
 
 PROGRESS_FILE = '/tmp/progress.txt'
-LOGFILE = '/mnt/sdb1/Performance.txt'
 
 # ANSI кольори
 COLOR_PINK = '\033[95m'
@@ -18,9 +17,7 @@ def write_progress(p):
 
 def log(msg):
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    if os.path.exists(LOGFILE):
-        with open(LOGFILE, 'a') as f:
-            f.write(f"[{ts}] {msg}\n")
+    print(f"[{ts}] {msg}", flush=True)
 
 # --- Приклади перевірок ---
 def check_ssh_from_ip(ip_prefix="192.168.1."):
@@ -104,9 +101,9 @@ def check_ftp_upload():
 def check_scp_setup():
     ok = False
     output = subprocess.getoutput(
-        "sshpass -p 'passwd' ssh -o StrictHostKeyChecking=no "
+        "sshpass -p 'porta!!!' ssh -o StrictHostKeyChecking=no "
         "padavan@192.168.2.6 "
-        "\"test -f /home/padavan/Setup.txt && grep -qi 'Router is Setuped' /home/padavan/Setup.txt && echo OK ||>
+        "\"grep -i 'Router is Setuped' /home/padavan/Setup.txt && echo OK || echo FAIL\""
     )
 
     log("scp_setup_output=" + output)
@@ -120,7 +117,7 @@ def check_forward_ssh():
 
     log("forward_ssh_output=\n" + output)
 
-    expected = ("-A PREROUTING -i enp0s8 -p tcp -m tcp --dport 12345 -j DNAT --to-destination 192.168.2.10:22"
+    expected = ("-A PREROUTING -i enp0s8 -p tcp -m tcp --dport 12345 -j DNAT --to-destination 192.168.1.4:22"
 
     )
 

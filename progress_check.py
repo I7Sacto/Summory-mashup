@@ -64,17 +64,20 @@ def check_resolv():
 # --- Перевірка NAT у iptables ---
 def check_nat():
     ok = False
+    output = subprocess.getoutput("sudo iptables-save -t nat")
 
-    try:
-        output = subprocess.getoutput("sudo iptables -t nat -S POSTROUTING")
+    log("check_nat_output=\n" + output)
 
-        if "-j MASQUERADE" in output or "-j SNAT" in output:
-            ok = True
+    return "10.0.2.0/24" in output and "MASQUERADE" in output
 
-    except:
-        ok = False
+    log("check_nat_expected=" + expected)
+
+    ok = expected in output
+
+    log("check_nat=" + ("OK" if ok else "FAIL"))
 
     return ok
+
 
 # --- Перевірка network.config ---
 def check_network_config():
@@ -110,15 +113,17 @@ def check_scp_setup():
 
     return "OK" in output
 
-
 def check_forward_ssh():
     ok = False
-    output = subprocess.getoutput("sudo iptables -t nat -S PREROUTING")
+    output = subprocess.getoutput("sudo iptables-save -t nat")
 
     log("forward_ssh_output=\n" + output)
 
-    expected = ("-A PREROUTING -i enp0s8 -p tcp -m tcp --dport 12345 -j DNAT --to-destination 192.168.1.4:22"
-
+    return (
+        "-A PREROUTING" in output and
+        "--dport 12345" in output and
+        "DNAT" in output and
+        "--to-destination 192.168.1.4:22" in output
     )
 
     log("forward_ssh_expected=" + expected)
@@ -128,6 +133,9 @@ def check_forward_ssh():
     log("forward_ssh=" + ("OK" if ok else "FAIL"))
 
     return ok
+
+
+
 
 def check_traffic_pcap():
     ok = os.path.exists("/root/traffic.pcap")

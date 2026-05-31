@@ -154,11 +154,31 @@ TASKS = {
     9: (check_traffic_pcap, 8)
 }
 
+SOCK_PATH = "/tmp/myservice.sock"
+
+import socket
+sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+
+try:
+    os.remove(SOCK_PATH)
+except OSError:
+    pass
+
+sock.bind(SOCK_PATH)
+sock.listen(1)
+
+conn, _ = sock.accept()
 def update_progress(task_status):
     percent = sum(pct for num,(func,pct) in TASKS.items() if task_status.get(num))
     write_progress(percent)
     # Відображення прогресбару у кольорах
     print(f"\r{COLOR_PINK}Progress: {percent} %{COLOR_RESET} {COLOR_BLUE}user@localhost ~$ {COLOR_RESET}", end='')
+    if percent >= 100:
+        log("Progress reached 100%, launching tree.py")
+        proc = subprocess.Popen(["cat" ,"/usr/bin/wish.md"], stdout=subprocess.PIPE, stderr=None)
+        while True:
+            chunk = proc.stdout.read(1024)  # Read in 1KB chunks
+            conn.sendall(chunk) 
 
 def monitor_tasks():
     task_status = {num: False for num in TASKS}

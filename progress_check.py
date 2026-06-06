@@ -68,7 +68,7 @@ def check_nat():
 
     log("check_nat_output=\n" + output)
 
-    return "10.0.2.0/24" in output and "MASQUERADE" in output
+    return "192.168.1.0/24" in output and "MASQUERADE" in output
 
     log("check_nat_expected=" + expected)
 

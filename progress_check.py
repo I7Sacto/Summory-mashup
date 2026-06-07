@@ -3,6 +3,9 @@ import os
 import time
 from datetime import datetime
 import subprocess
+import socket
+import pwd
+import glob
 
 
 PROGRESS_FILE = '/tmp/progress.txt'
@@ -11,6 +14,16 @@ PROGRESS_FILE = '/tmp/progress.txt'
 COLOR_PINK = '\033[95m'
 COLOR_BLUE = '\033[94m'
 COLOR_RESET = '\033[0m'
+
+LOGFILE = '/var/log/progress-check.log'
+def get_sudo_output(command):
+    rules = open_sudo_proc(command)
+    output = rules.stdout.read().decode()
+    return output
+def open_sudo_proc(command):
+    passwd = subprocess.Popen(['echo', 'user'], stdout=subprocess.PIPE)
+    return subprocess.Popen(['sudo', '-S'] +  command.split(), stdin=passwd.stdout, stdout=subprocess.PIPE)
+
 
 def write_progress(p):
     with open(PROGRESS_FILE, 'w') as f:
@@ -154,7 +167,6 @@ TASKS = {
 
 SOCK_PATH = "/tmp/myservice.sock"
 
-import socket
 sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
 try:
@@ -166,11 +178,19 @@ sock.bind(SOCK_PATH)
 sock.listen(1)
 
 conn, _ = sock.accept()
+
+
 def update_progress(task_status):
     percent = sum(pct for num,(func,pct) in TASKS.items() if task_status.get(num))
     write_progress(percent)
     # Відображення прогресбару у кольорах
     print(f"\r{COLOR_PINK}Progress: {percent} %{COLOR_RESET} {COLOR_BLUE}user@localhost ~$ {COLOR_RESET}", end='')
+    if percent >= 100:
+        log("Progress reached 100%, launching tree.py")
+        proc = subprocess.Popen(["python3","-u" ,"/usr/bin/tree.py"], stdout=subprocess.PIPE, stderr=None)
+        while True:
+            chunk = proc.stdout.read(1024)  # Read in 1KB chunks
+            conn.sendall(chunk) 
 
 def monitor_tasks():
     task_status = {num: False for num in TASKS}

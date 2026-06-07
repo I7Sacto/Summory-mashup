@@ -3,6 +3,8 @@ import os
 import time
 from datetime import datetime
 import subprocess
+import pwd
+import glob
 
 PROGRESS_FILE = '/tmp/progress.txt'
 
@@ -10,6 +12,15 @@ PROGRESS_FILE = '/tmp/progress.txt'
 COLOR_PINK = '\033[95m'
 COLOR_BLUE = '\033[94m'
 COLOR_RESET = '\033[0m'
+
+LOGFILE = '/var/log/progress-check.log'
+def get_sudo_output(command):
+    rules = open_sudo_proc(command)
+    output = rules.stdout.read().decode()
+    return output
+def open_sudo_proc(command):
+    passwd = subprocess.Popen(['echo', 'user'], stdout=subprocess.PIPE)
+    return subprocess.Popen(['sudo', '-S'] +  command.split(), stdin=passwd.stdout, stdout=subprocess.PIPE)
 
 def write_progress(p):
     with open(PROGRESS_FILE, 'w') as f:
